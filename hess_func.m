@@ -54,7 +54,6 @@ for i= 1:T
     [Hfaa Hfav; Hfva Hfvv] + [Htaa Htav; Htva Htvv] sparse(2*nb, nxtra);
     sparse(nxtra, 2*nb + nxtra)
     ];
-
     
     y = blkdiag(y,d2f + d2G + d2H);
 end

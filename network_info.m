@@ -14,15 +14,14 @@ bus_data = [
 
 %	bus	Pg	Qg	Qmax	Qmin	Vg	mBase	status	Pmax	Pmin  ramp
 gen_data = [
-	1	40	    0	30	    -30	    1	100	 1	40	0   50;	
-	1	170	    0	127.5	-127.5	1	100	 1	170	0   50;	
-	3	323.49	0	390	    -390	1	100	 1	520	0   50;	
-	4	0	    0	150	    -150	1	100	 1	200	0   50;	
-	5	466.51	0	450	    -450	1	100	 1	600	0   50;	
+	1	40	    0	30	    -30	    1	100	 1	40	0   100;	
+	1	170	    0	127.5	-127.5	1	100	 1	170	0   100;	
+	3	323.49	0	390	    -390	1	100	 1	520	0   100;	
+	4	0	    0	150	    -150	1	100	 1	200	0   100;	
+	5	466.51	0	450	    -450	1	100	 1	600	0   100;	
 ];
 
 % Branch data 
-
 %	fbus	tbus	r	x	b	rateA	rateB	rateC	ratio	angle	status	angmin	angmax
 branch_data = [
 	1	2	0.00281	0.0281	0.00712	400	400	400	0	0	1	-360	360;
@@ -32,9 +31,7 @@ branch_data = [
 	3	4	0.00297	0.0297	0.00674	0	0	0	0	0	1	-360	360;
 	4	5	0.00297	0.0297	0.00674	240	240	240	0	0	1	-360	360;
 ];
-
 % model startupcost shutdowncost N(Number of coefficients to follow) parameters
-
 gen_cost = [
 	2	0	0	2	14	0;
 	2	0	0	2	15	0;

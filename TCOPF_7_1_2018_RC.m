@@ -54,7 +54,9 @@ d2f = sparse(1:20*timesteps,1:20*timesteps,0); % Using linear cost functions
 % second stop: 12:34 PM 7/1/2018
 % resumes at 3:57 PM 7/1/2018
 
-[g,gn,h,hn,dh,dg,Sflist,Stlist,dSf_dValist,dSf_dVmlist,dSt_dVmlist,dSt_dValist] = Eqcons_df(x,xmax,xmin,timesteps);
+[load_data_p, load_data_q] = generating_load_data(timesteps);
+
+[g,gn,h,hn,dh,dg,Sflist,Stlist,dSf_dValist,dSf_dVmlist,dSt_dVmlist,dSt_dValist] = Eqcons_df(x,xmax,xmin,timesteps,load_data_p,load_data_q);
 
 %% Grabing some dimensions and initiallizing constants of the optimization
 neq = size(g, 1);           %% number of equality constraints
@@ -74,7 +76,8 @@ e = ones(niq, 1);
 %% Solving optimization
 kk = 1;
 err = 1;
-while kk <= 200
+cond_TCOPF = [];
+while kk <= 500
     zinvdiag = sparse(1:niq, 1:niq, 1./ z, niq, niq);
     mudiag = sparse(1:niq, 1:niq, mu, niq, niq);
     dh_zinv = dh * zinvdiag;
@@ -118,19 +121,19 @@ while kk <= 200
         gamma = 0.1* (z' * mu) / niq;
     end
     [f,df] = objfunc_firstderi(x,timesteps);              %% cost
-    [g,gn,h,hn,dh,dg,Sflist,Stlist,dSf_dValist,dSf_dVmlist,dSt_dVmlist,dSt_dValist] = Eqcons_df(x,xmax,xmin,timesteps);
+    [g,gn,h,hn,dh,dg,Sflist,Stlist,dSf_dValist,dSf_dVmlist,dSt_dVmlist,dSt_dValist] = Eqcons_df(x,xmax,xmin,timesteps,load_data_p,load_data_q);
 
    solu(kk,:) = x;
    if kk>2
    err = max(solu(kk,:)-solu(kk-1,:));
    end
-   if err<0.0001
+   if err<0.000001
        break;
    end
    kk = kk+1;
+   cond_TCOPF = [cond_TCOPF cond(full(W))];
 end
 %% Post processing
-[load_data_p, load_data_q] = generating_load_data(timesteps);
 sol = reshape(x,20,timesteps);
 PG = sol(11:15,:);
 QG = sol(11:15,:);

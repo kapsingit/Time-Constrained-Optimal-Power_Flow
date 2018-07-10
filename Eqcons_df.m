@@ -1,5 +1,5 @@
 
-function [gt,gnt,ht,hnt,dht,dgt,Sflist,Stlist,dSf_dValist,dSf_dVmlist,dSt_dVmlist,dSt_dValist] = Eqcons_df(xt,xmaxt,xmint,T)
+function [gt,gnt,ht,hnt,dht,dgt,Sflist,Stlist,dSf_dValist,dSf_dVmlist,dSt_dVmlist,dSt_dValist] = Eqcons_df(xt,xmaxt,xmint,T,load_data_p,load_data_q)
 
 [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, RAMP] = idfor_gen;
 
@@ -7,8 +7,6 @@ function [gt,gnt,ht,hnt,dht,dgt,Sflist,Stlist,dSf_dValist,dSf_dVmlist,dSt_dVmlis
     VA, BASE_KV, VMAX, VMIN] = idfor_bus;
 
 [bus_data,gen_data,branch_data, gen_cost,baseMVA] = network_info;
-
-[load_data_p, load_data_q] = generating_load_data(T);
 
 [Ybus, Yf, Yt] = make_ybus;
 
@@ -70,24 +68,24 @@ for i = 1:T
     
     hn = [ Sf .* conj(Sf) - flow_max;      %% branch apparent power limits (from bus)
       St .* conj(St) - flow_max ];
-  hnt = [hnt; hn];
+    hnt = [hnt; hn];
   
-  n = length(V);
-  ng = size(gen_data,1);
-  n_var = length(x);
-  Ibus = Ybus * V;
-  diagV       = sparse(1:n, 1:n, V, n, n);
-  diagIbus    = sparse(1:n, 1:n, Ibus, n, n);
-  diagVnorm   = sparse(1:n, 1:n, V./abs(V), n, n);
-  dSbus_dVm = diagV * conj(Ybus * diagVnorm) + conj(diagIbus) * diagVnorm;
-  dSbus_dVa = 1j * diagV * conj(diagIbus - Ybus * diagV);
-  neg_Cg = sparse(gen_data(:, GEN_BUS), 1:ng, -1, nb, ng);
-  dgn = sparse(2*nb, n_var);
-  dgn(:, [1:5 6:10 11:15 16:20]) = [
+    n = length(V);
+    ng = size(gen_data,1);
+    n_var = length(x);
+    Ibus = Ybus * V;
+    diagV       = sparse(1:n, 1:n, V, n, n);
+    diagIbus    = sparse(1:n, 1:n, Ibus, n, n);
+    diagVnorm   = sparse(1:n, 1:n, V./abs(V), n, n);
+    dSbus_dVm = diagV * conj(Ybus * diagVnorm) + conj(diagIbus) * diagVnorm;
+    dSbus_dVa = 1j * diagV * conj(diagIbus - Ybus * diagV);
+    neg_Cg = sparse(gen_data(:, GEN_BUS), 1:ng, -1, nb, ng);
+    dgn = sparse(2*nb, n_var);
+    dgn(:, [1:5 6:10 11:15 16:20]) = [
       real([dSbus_dVa dSbus_dVm]) neg_Cg sparse(nb, ng);  %% P mismatch w.r.t Va, Vm, Pg, Qg
       imag([dSbus_dVa dSbus_dVm]) sparse(nb, ng) neg_Cg;  %% Q mismatch w.r.t Va, Vm, Pg, Qg
       ];
-  dgn = dgn';
+   dgn = dgn';
   
   f1 = [1,4];
   t1 = [2,5];
@@ -154,6 +152,23 @@ for i = 1:T
   dht = blkdiag(dht,dht_a); 
   dgt = blkdiag(dgt,dgt_a);
 end
+
+% Limits
+
+%   AA = speye(length(xt));
+%   ieq = find( abs(xmaxt-xmint) <= eps );        %% equality constraints
+%   igt = find( xmaxt >=  1e10 & xmint > -1e10 );     %% greater than, unbounded above
+%   ilt = find( xmint <= -1e10 & xmaxt <  1e10 );     %% less than, unbounded below
+%   ibx = find( (abs(xmaxt-xmint) > eps) & (xmaxt < 1e10) & (xmint > -1e10) );
+%   Ae = AA(ieq, :);
+%   be = xmaxt(ieq, 1);
+%   Ai  = [ AA(ilt, :); -AA(igt, :); AA(ibx, :); -AA(ibx, :) ];
+%   bi  = [ xmaxt(ilt, 1); -xmint(igt, 1); xmaxt(ibx, 1); -xmint(ibx, 1) ];
+%   ht = [hnt;Ai * xt - bi];
+%   gt = [gnt; Ae * xt - be];
+%   dht = [dhnt' Ai']; 
+%   dgt = [dgnt Ae'];
+
 
 % Ramping constraints and its derivative
 id = [];
